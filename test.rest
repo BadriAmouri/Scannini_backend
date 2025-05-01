@@ -1,43 +1,45 @@
 ### Register a New User
-POST http://localhost:3000/register
+POST http://localhost:3000/api/register
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
+  "email": "test@exampple.com",
   "password": "123456"
 }
 
 ###
 
 ### Login the User
-POST http://localhost:3000/login
+POST http://localhost:3000/api/login
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
+  "email": "test@exampple.com",
   "password": "123456"
 }
 
 ###
 
 ### Create a QR Link
-POST http://localhost:3000/create_QR
+POST http://localhost:3000/api/create_QR
 Content-Type: application/json
 
 {
-  "email": "test@example.com",
-  "link": "https://example.com/safe"
+  "email": "test@exampple.com",
+  "link": "https://exampple.com/safe"
 }
 
 ###
 
 ### Get a QR Link
-POST http://localhost:3000/get_QR
+POST http://localhost:3000/api/get_QR
 Content-Type: application/json
 
 {
-  "link": "https://example.com/safest"
+  "link": "https://exampple.com/safe"
 }
+
+###
 
 ### Welcome message
 GET http://localhost:3000

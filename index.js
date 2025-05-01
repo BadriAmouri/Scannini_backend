@@ -1,74 +1,32 @@
 const express = require("express");
 const bodyParser = require("body-parser");
+const cors = require("cors");
+const dotenv = require("dotenv");
+
+dotenv.config();
 const supabase = require("./config/db");
-require("dotenv").config();
+
+const registerRoutes = require("./api/register");
+const loginRoutes = require("./api/login");
+const createQRRoutes = require("./api/create_QR");
+const getQRRoutes = require("./api/get_QR");
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(bodyParser.json());
+app.use(cors());  // Enable CORS
+app.use(bodyParser.json());  // Parse incoming requests with JSON payload
 
-// Register
-app.post("/register", async (req, res) => {
-  const { email, password } = req.body;
-
-  const { data, error } = await supabase
-    .from("user")
-    .insert([{ email, password }]);
-
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ message: "User registered", data });
-});
-
-// Login
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  const { data, error } = await supabase
-    .from("user")
-    .select("*")
-    .eq("email", email)
-    .eq("password", password)
-    .single();
-
-  if (error || !data) return res.status(401).json({ error: "Invalid credentials" });
-  res.json({ message: "Login successful" });
-});
-
-// Create QR
-app.post("/create_QR", async (req, res) => {
-  const { email, link } = req.body;
-
-  const { data, error } = await supabase
-    .from("QR_link")
-    .insert([{ email, link }]);
-
-  if (error) return res.status(400).json({ error: error.message });
-  res.json({ message: "QR link created", data });
-});
-
-// Get QR
-app.post("/get_QR", async (req, res) => {
-  const { link } = req.body;
-
-  const { data, error } = await supabase
-    .from("QR_link")
-    .select("*")
-    .eq("link", link);
-
-  if (error) return res.status(400).json({ error: error.message });
-
-  if (data.length > 0) {
-    res.json({ status: "safe", message: "This is a safe link", data });
-  } else {
-    res.json({ status: "harmful", message: "This link is harmful or unknown" });
-  }
-});
+// Register API routes
+app.use("/api/register", registerRoutes);
+app.use("/api/login", loginRoutes);
+app.use("/api/create_QR", createQRRoutes);
+app.use("/api/get_QR", getQRRoutes);
 
 // Welcome Route
-app.get('/', (req, res) => {
-    res.send('Welcome to the LockChat Backend API!');
-  });
+app.get("/", (req, res) => {
+  res.send("Welcome to the LockChat Backend API!");
+});
 
 app.listen(port, () => {
   console.log(`✅ Server running at http://localhost:${port}`);
