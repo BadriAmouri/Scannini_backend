@@ -1,0 +1,40 @@
+### Register a New User
+POST http://localhost:3000/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "123456"
+}
+
+###
+
+### Login the User
+POST http://localhost:3000/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "123456"
+}
+
+###
+
+### Create a QR Link
+POST http://localhost:3000/create_QR
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "link": "https://example.com/safe"
+}
+
+###
+
+### Get a QR Link
+POST http://localhost:3000/get_QR
+Content-Type: application/json
+
+{
+  "link": "https://example.com/safest"
+}
