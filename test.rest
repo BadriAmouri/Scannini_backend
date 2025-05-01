@@ -3,7 +3,7 @@ POST http://localhost:3000/api/register
 Content-Type: application/json
 
 {
-  "email": "test@exampple.com",
+  "email": "test@exampple2.com",
   "password": "123456"
 }
 
@@ -14,7 +14,7 @@ POST http://localhost:3000/api/login
 Content-Type: application/json
 
 {
-  "email": "test@exampple.com",
+  "email": "test@exampple2.com",
   "password": "123456"
 }
 
@@ -25,7 +25,7 @@ POST http://localhost:3000/api/create_QR
 Content-Type: application/json
 
 {
-  "email": "test@exampple.com",
+  "email": "test@exampple2.com",
   "link": "https://exampple.com/safe"
 }
 
