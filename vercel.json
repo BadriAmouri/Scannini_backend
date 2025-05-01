@@ -1,7 +1,16 @@
 {
     "version": 2,
     "builds": [
-      { "src": "api/*.js", "use": "@vercel/node" }
+      {
+        "src": "api/*.js",
+        "use": "@vercel/node"
+      }
+    ],
+    "routes": [
+      { "src": "/api/register", "dest": "/api/register.js" },
+      { "src": "/api/login", "dest": "/api/login.js" },
+      { "src": "/api/create_QR", "dest": "/api/create_QR.js" },
+      { "src": "/api/get_QR", "dest": "/api/get_QR.js" }
     ]
   }
   

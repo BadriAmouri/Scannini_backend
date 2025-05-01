@@ -1,10 +1,8 @@
 // api/register.js
-const cors = require("cors");
 const supabase = require("../config/db");
 
 module.exports = async (req, res) => {
-  // Apply CORS in the specific route
-  cors()(req, res, async () => {
+  if (req.method === "POST") {
     const { email, password } = req.body;
 
     const { data, error } = await supabase
@@ -12,6 +10,9 @@ module.exports = async (req, res) => {
       .insert([{ email, password }]);
 
     if (error) return res.status(400).json({ error: error.message });
-    res.json({ message: "User registered", data });
-  });
+    return res.json({ message: "User registered", data });
+  }
+  return res.status(405).json({ error: "Method Not Allowed" });
 };
+
+// send him an email with a link to verify his account ( or a code to verify his account)

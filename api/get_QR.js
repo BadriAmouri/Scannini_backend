@@ -1,18 +1,22 @@
-const supabase = require('../config/db');
+// api/get_QR.js
+const supabase = require("../config/db");
 
 module.exports = async (req, res) => {
-  const { link } = req.body;
+  if (req.method === "POST") {
+    const { link } = req.body;
 
-  const { data, error } = await supabase
-    .from('QR_link')
-    .select('*')
-    .eq('link', link);
+    const { data, error } = await supabase
+      .from("QR_link")
+      .select("*")
+      .eq("link", link);
 
-  if (error) return res.status(400).json({ error: error.message });
+    if (error) return res.status(400).json({ error: error.message });
 
-  if (data.length > 0) {
-    res.json({ status: 'safe', message: 'This is a safe link', data });
-  } else {
-    res.json({ status: 'harmful', message: 'This link is harmful or unknown' });
+    if (data.length > 0) {
+      return res.json({ status: "safe", message: "This is a safe link", data });
+    } else {
+      return res.json({ status: "harmful", message: "This link is harmful or unknown" });
+    }
   }
+  return res.status(405).json({ error: "Method Not Allowed" });
 };

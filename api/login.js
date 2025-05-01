@@ -1,10 +1,8 @@
 // api/login.js
-const cors = require("cors");
 const supabase = require("../config/db");
 
 module.exports = async (req, res) => {
-  // Apply CORS in the specific route
-  cors()(req, res, async () => {
+  if (req.method === "POST") {
     const { email, password } = req.body;
 
     const { data, error } = await supabase
@@ -15,6 +13,7 @@ module.exports = async (req, res) => {
       .single();
 
     if (error || !data) return res.status(401).json({ error: "Invalid credentials" });
-    res.json({ message: "Login successful" });
-  });
+    return res.json({ message: "Login successful" });
+  }
+  return res.status(405).json({ error: "Method Not Allowed" });
 };
