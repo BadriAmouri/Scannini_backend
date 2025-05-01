@@ -65,6 +65,11 @@ app.post("/get_QR", async (req, res) => {
   }
 });
 
+// Welcome Route
+app.get('/', (req, res) => {
+    res.send('Welcome to the LockChat Backend API!');
+  });
+
 app.listen(port, () => {
   console.log(`✅ Server running at http://localhost:${port}`);
 });

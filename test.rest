@@ -38,3 +38,6 @@ Content-Type: application/json
 {
   "link": "https://example.com/safest"
 }
+
+### Welcome message
+GET http://localhost:3000
