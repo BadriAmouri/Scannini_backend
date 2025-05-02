@@ -3,7 +3,7 @@ POST http://localhost:3000/api/register
 Content-Type: application/json
 
 {
-  "email": "test@exampple2.com",
+  "email": "badri.amouri@ensia.edu.dz",
   "password": "123456"
 }
 
@@ -43,3 +43,16 @@ Content-Type: application/json
 
 ### Welcome message
 GET http://localhost:3000
+
+
+
+
+### check the user email 
+POST http://localhost:3000/api/check_email_code
+Content-Type: application/json
+
+
+{
+  "email": "badri.amouri@ensia.edu.dz",
+  "code": "469728"
+}

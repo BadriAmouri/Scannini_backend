@@ -10,6 +10,7 @@ const registerRoutes = require("./api/register");
 const loginRoutes = require("./api/login");
 const createQRRoutes = require("./api/create_QR");
 const getQRRoutes = require("./api/get_QR");
+const checkEmailCodeRoutes = require("./api/Check_email_code");  // Import the check email code route
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -22,6 +23,8 @@ app.use("/api/register", registerRoutes);
 app.use("/api/login", loginRoutes);
 app.use("/api/create_QR", createQRRoutes);
 app.use("/api/get_QR", getQRRoutes);
+app.use("/api/check_email_code", checkEmailCodeRoutes);  // Add this line
+
 
 // Welcome Route
 app.get("/", (req, res) => {
