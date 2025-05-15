@@ -2,7 +2,7 @@ const supabase = require('../config/db');
 const axios = require('axios');
 
 const VIRUSTOTAL_API_KEY = process.env.VirusTotal_API_KEY;
-const SECURITY_THRESHOLD = 2; // Number of engines that need to flag the URL to consider it unsafe
+const SECURITY_THRESHOLD = 1; // Number of engines that need to flag the URL to consider it unsafe
 
 // Helper: Summarize VirusTotal results
 function getScanSummary(data) {

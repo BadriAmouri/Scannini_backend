@@ -15,8 +15,7 @@ const loginRoutes = require("./api/login");
 const createQRRoutes = require("./api/create_QR");
 const getQRRoutes = require("./api/get_QR");
 const checkEmailCodeRoutes = require("./api/Check_email_code");
-const scanRoutes = require("./api/Check_QR"); // Handles VirusTotal + Google Safe Browsing (separated in routes)
-const ipqsRoutes = require("./api/scan/ipqs/check"); // IPQS URL scanning routes
+const scanRoutes = require("./api/Check_QR"); // This file contains all scan-related routes
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -31,8 +30,7 @@ app.use("/api/login", loginRoutes);
 app.use("/api/create_QR", createQRRoutes);
 app.use("/api/get_QR", getQRRoutes);
 app.use("/api/check_email_code", checkEmailCodeRoutes);
-app.use("/api/scan", scanRoutes); // Routes include /virustotal/scan, /google/check, etc.
-app.use("/api/scan/ipqs", ipqsRoutes); // IPQS URL scanning endpoint
+app.use("/api/scan", scanRoutes); // This will handle all scan-related routes
 
 // Welcome route
 app.get("/", (req, res) => {

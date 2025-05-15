@@ -1,51 +1,58 @@
-// Check_QR.js : Handles scanning URLs using VirusTotal and Google Safe Browsing APIs
+// Check_QR.js : Handles scanning URLs using VirusTotal and IPQS APIs
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();
 
-const VIRUSTOTAL_API_KEY = process.env.VirusTotal_API_KEY;
-const GOOGLE_SAFE_BROWSING_API_KEY = process.env.Google_Safe_Browsing_API_KEY;
+// Environment variables
+const VIRUSTOTAL_API_KEY = process.env.VIRUSTOTAL_API_KEY;
+const IPQS_API_KEY = process.env.IPQS_API_KEY;
 
-/* -------------------------------- Google Safe Browsing -------------------------------- */
+// URL validation helper
+function isValidUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
 
-// POST: Check a URL using Google Safe Browsing
-router.post("/google/check", async (req, res) => {
+/* -------------------------------- IPQS -------------------------------- */
+
+router.post("/ipqs/check", async (req, res) => {
   const { url } = req.body;
 
+  // Input validation
   if (!url) {
     return res.status(400).json({ error: "URL is required" });
   }
 
+  if (!isValidUrl(url)) {
+    return res.status(400).json({ error: "Invalid URL format" });
+  }
+
   try {
-    const response = await axios.post(
-      `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${GOOGLE_SAFE_BROWSING_API_KEY}`,
-      {
-        client: {
-          clientId: "urlscanner-app",
-          clientVersion: "1.0.0",
-        },
-        threatInfo: {
-          threatTypes: [
-            "MALWARE",
-            "SOCIAL_ENGINEERING",
-            "UNWANTED_SOFTWARE",
-            "POTENTIALLY_HARMFUL_APPLICATION",
-          ],
-          platformTypes: ["ANY_PLATFORM"],
-          threatEntryTypes: ["URL"],
-          threatEntries: [{ url }],
-        },
-      }
+    const response = await axios.get(
+      `https://www.ipqualityscore.com/api/json/url/${IPQS_API_KEY}/${encodeURIComponent(url)}`
     );
 
-    res.status(200).json(
-      response.data.matches
-        ? { unsafe: true, matches: response.data.matches }
-        : { unsafe: false }
-    );
+    res.status(200).json({
+      safe: !response.data.unsafe,
+      details: {
+        malware: response.data.malware,
+        phishing: response.data.phishing,
+        suspicious: response.data.suspicious,
+        adult: response.data.adult
+      }
+    });
   } catch (error) {
-    console.error("Google Safe Browsing Error:", error.response?.data || error.message);
-    res.status(500).json({ error: "Failed to check URL with Google Safe Browsing" });
+    console.error("IPQS Error:", error.response?.data || error.message);
+    res.status(500).json({ 
+      safe: false,
+      details: {
+        message: error.response?.data?.message || "Failed to check URL with IPQS"
+      }
+    });
   }
 });
 
@@ -75,8 +82,13 @@ function getScanSummary(data) {
 router.post("/virustotal/scan", async (req, res) => {
   const { url } = req.body;
 
+  // Input validation
   if (!url) {
     return res.status(400).json({ error: "URL is required" });
+  }
+
+  if (!isValidUrl(url)) {
+    return res.status(400).json({ error: "Invalid URL format" });
   }
 
   try {
@@ -103,6 +115,10 @@ router.post("/virustotal/scan", async (req, res) => {
 router.get("/virustotal/scan/:id", async (req, res) => {
   const { id } = req.params;
 
+  if (!id) {
+    return res.status(400).json({ error: "Analysis ID is required" });
+  }
+
   try {
     const vtResponse = await axios.get(
       `https://www.virustotal.com/api/v3/analyses/${id}`,
@@ -118,6 +134,109 @@ router.get("/virustotal/scan/:id", async (req, res) => {
   } catch (err) {
     console.error("VirusTotal Result Error:", err.response?.data || err.message);
     res.status(500).json({ error: err.response?.data || err.message });
+  }
+});
+
+/* -------------------------------- Combined Check -------------------------------- */
+
+router.post("/combined/check", async (req, res) => {
+  const { url } = req.body;
+
+  // Input validation
+  if (!url) {
+    return res.status(400).json({ error: "URL is required" });
+  }
+
+  if (!isValidUrl(url)) {
+    return res.status(400).json({ error: "Invalid URL format" });
+  }
+
+  try {
+    // 1. First check with IPQS
+    const ipqsResponse = await axios.get(
+      `https://www.ipqualityscore.com/api/json/url/${IPQS_API_KEY}/${encodeURIComponent(url)}`
+    );
+
+    const ipqsResult = {
+      safe: !ipqsResponse.data.unsafe,
+      details: {
+        malware: ipqsResponse.data.malware,
+        phishing: ipqsResponse.data.phishing,
+        suspicious: ipqsResponse.data.suspicious,
+        adult: ipqsResponse.data.adult
+      }
+    };
+
+    // 2. Then check with VirusTotal
+    const vtScanResponse = await axios.post(
+      "https://www.virustotal.com/api/v3/urls",
+      new URLSearchParams({ url }),
+      {
+        headers: {
+          "x-apikey": VIRUSTOTAL_API_KEY,
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    const analysisId = vtScanResponse.data.data.id;
+
+    // Wait for VirusTotal analysis to complete
+    let vtResult = null;
+    let attempts = 0;
+    const maxAttempts = 5; // Maximum number of attempts
+    const waitTime = 5000; // Wait 5 seconds between attempts
+
+    while (attempts < maxAttempts) {
+      try {
+        const vtResultResponse = await axios.get(
+          `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
+          {
+            headers: {
+              "x-apikey": VIRUSTOTAL_API_KEY,
+            },
+          }
+        );
+
+        // Check if analysis is complete
+        if (vtResultResponse.data.data.attributes.status === "completed") {
+          vtResult = getScanSummary(vtResultResponse.data);
+          break;
+        }
+
+        // If not complete, wait and try again
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+        attempts++;
+      } catch (error) {
+        console.error("Error fetching VirusTotal results:", error);
+        break;
+      }
+    }
+
+    // If we couldn't get VirusTotal results after all attempts
+    if (!vtResult) {
+      vtResult = {
+        totalEngines: 0,
+        flaggedEngines: 0,
+        error: "VirusTotal analysis timed out"
+      };
+    }
+
+    // 3. Combine results
+    const combinedResult = {
+      url: url,
+      ipqs: ipqsResult,
+      virustotal: vtResult,
+      isSafe: ipqsResult.safe && vtResult.flaggedEngines === 0
+    };
+
+    res.status(200).json(combinedResult);
+  } catch (error) {
+    console.error("Combined Check Error:", error.response?.data || error.message);
+    res.status(500).json({ 
+      error: "Failed to perform combined check",
+      details: error.response?.data || error.message
+    });
   }
 });
 
