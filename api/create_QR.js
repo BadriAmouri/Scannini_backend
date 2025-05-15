@@ -74,29 +74,19 @@ module.exports = async (req, res) => {
       });
     }
 
-    // If URL is safe, create the QR code
+    // If URL is safe, create the QR code with only email and link
     const { data, error } = await supabase
       .from('QR_link')
       .insert([{ 
         email, 
-        link,
-        security_check: {
-          flaggedEngines: summary.flaggedEngines,
-          totalEngines: summary.totalEngines,
-          scanDate: new Date().toISOString()
-        }
+        link
       }]);
 
     if (error) return res.status(400).json({ error: error.message });
 
     res.json({ 
       message: 'QR link created', 
-      data,
-      security: {
-        flaggedEngines: summary.flaggedEngines,
-        totalEngines: summary.totalEngines,
-        isSafe: true
-      }
+      data
     });
 
   } catch (error) {
